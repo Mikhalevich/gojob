@@ -4,8 +4,8 @@ import (
 	"testing"
 )
 
-func TestSumm(t *testing.T) {
-	job := NewJob()
+func TestAllSumm(t *testing.T) {
+	job := NewAll()
 	summ := 0
 	for i := 0; i < 100; i++ {
 		summ += i
