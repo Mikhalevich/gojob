@@ -1,6 +1,7 @@
 package gojob
 
 import (
+	"errors"
 	"testing"
 )
 
@@ -25,5 +26,25 @@ func TestAllSumm(t *testing.T) {
 
 	if summ != testSumm {
 		t.Fatalf("Compared values are not the same %d -> %d", summ, testSumm)
+	}
+}
+
+func TestFirstSimple(t *testing.T) {
+	job := NewFirst()
+	for i := 0; i < 100; i++ {
+		locValue := i
+		f := func() (interface{}, error) {
+			if locValue == 50 {
+				return 50, nil
+			}
+			return 0, errors.New("Invalid value")
+		}
+		job.Add(f)
+	}
+
+	job.Wait()
+
+	if job.Results.(int) != 50 {
+		t.Fatalf("Compared values are not the same %d -> %d", 50, job.Results.(int))
 	}
 }
