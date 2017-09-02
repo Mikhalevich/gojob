@@ -1,4 +1,4 @@
-package gojob
+package jober
 
 import (
 	"errors"

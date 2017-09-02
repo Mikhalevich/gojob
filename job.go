@@ -1,8 +1,8 @@
-package gojob
+package jober
 
 type WorkerFunc func() (interface{}, error)
 
-type Job interface {
+type Jober interface {
 	Add(f WorkerFunc)
 	Wait()
 }
