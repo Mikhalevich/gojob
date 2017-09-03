@@ -20,7 +20,8 @@ func TestAllSumm(t *testing.T) {
 	job.Wait()
 
 	testSumm := 0
-	for _, r := range job.Results {
+	results, _ := job.Get()
+	for _, r := range results {
 		testSumm += r.(int)
 	}
 
@@ -44,7 +45,12 @@ func TestFirstSimple(t *testing.T) {
 
 	job.Wait()
 
-	if job.Results.(int) != 50 {
-		t.Fatalf("Compared values are not the same %d -> %d", 50, job.Results.(int))
+	results, _ := job.Get()
+	if len(results) != 1 {
+		t.Fatalf("Not valid data length len = %d", len(results))
+	}
+
+	if results[0].(int) != 50 {
+		t.Fatalf("Compared values are not the same %d -> %d", 50, results[0].(int))
 	}
 }
