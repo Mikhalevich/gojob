@@ -3,6 +3,7 @@ package jober
 import (
 	"errors"
 	"testing"
+	"time"
 )
 
 func TestAllSumm(t *testing.T) {
@@ -33,12 +34,69 @@ func TestAllSumm(t *testing.T) {
 	}
 }
 
-func TestFirstSimple(t *testing.T) {
+func TestFirstStart(t *testing.T) {
+	job := NewFirst()
+	for i := 0; i < 100; i++ {
+		locValue := i
+		f := func() (interface{}, error) {
+			if locValue == 0 {
+				return 50, nil
+			}
+			time.Sleep(3000 * time.Millisecond)
+			return 0, errors.New("Invalid value")
+		}
+		job.Add(f)
+	}
+
+	job.Wait()
+
+	results, errors := job.Get()
+
+	t.Logf("results len = %d, errors len = %d", len(results), len(errors))
+
+	if len(results) != 1 {
+		t.Fatalf("Not valid data length len = %d", len(results))
+	}
+
+	if results[0].(int) != 50 {
+		t.Fatalf("Compared values are not the same %d -> %d", 50, results[0].(int))
+	}
+}
+
+func TestFirstMiddle(t *testing.T) {
 	job := NewFirst()
 	for i := 0; i < 100; i++ {
 		locValue := i
 		f := func() (interface{}, error) {
 			if locValue == 50 {
+				return 50, nil
+			}
+			return 0, errors.New("Invalid value")
+		}
+		job.Add(f)
+	}
+
+	job.Wait()
+
+	results, errors := job.Get()
+
+	t.Logf("results len = %d, errors len = %d", len(results), len(errors))
+
+	if len(results) != 1 {
+		t.Fatalf("Not valid data length len = %d", len(results))
+	}
+
+	if results[0].(int) != 50 {
+		t.Fatalf("Compared values are not the same %d -> %d", 50, results[0].(int))
+	}
+}
+
+func TestFirstEnd(t *testing.T) {
+	job := NewFirst()
+	for i := 0; i < 100; i++ {
+		locValue := i
+		f := func() (interface{}, error) {
+			if locValue == 99 {
 				return 50, nil
 			}
 			return 0, errors.New("Invalid value")
