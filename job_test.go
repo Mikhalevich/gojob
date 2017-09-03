@@ -20,7 +20,10 @@ func TestAllSumm(t *testing.T) {
 	job.Wait()
 
 	testSumm := 0
-	results, _ := job.Get()
+	results, errors := job.Get()
+
+	t.Logf("results len = %d, errors len = %d", len(results), len(errors))
+
 	for _, r := range results {
 		testSumm += r.(int)
 	}
@@ -45,7 +48,10 @@ func TestFirstSimple(t *testing.T) {
 
 	job.Wait()
 
-	results, _ := job.Get()
+	results, errors := job.Get()
+
+	t.Logf("results len = %d, errors len = %d", len(results), len(errors))
+
 	if len(results) != 1 {
 		t.Fatalf("Not valid data length len = %d", len(results))
 	}
