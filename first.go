@@ -26,7 +26,7 @@ func (self *First) processFunc() {
 }
 
 func (self *First) Add(workerFunc WorkerFunc) {
-	if self.startProcess() {
+	if self.startProcess(self) {
 		go self.processFunc()
 	}
 

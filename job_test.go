@@ -42,7 +42,7 @@ func TestFirstStart(t *testing.T) {
 			if locValue == 0 {
 				return 50, nil
 			}
-			time.Sleep(3000 * time.Millisecond)
+			time.Sleep(1000 * time.Millisecond)
 			return 0, errors.New("Invalid value")
 		}
 		job.Add(f)

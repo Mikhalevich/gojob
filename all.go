@@ -11,7 +11,7 @@ func NewAll() *All {
 }
 
 func (self *All) Add(workerFunc WorkerFunc) {
-	self.startProcess()
+	self.startProcess(self)
 	self.waitGroup.Add(1)
 	go func() {
 		defer self.waitGroup.Done()

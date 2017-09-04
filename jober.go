@@ -12,6 +12,11 @@ type Jober interface {
 	Get() ([]interface{}, []error)
 }
 
+type processer interface {
+	processData()
+	processError()
+}
+
 type Processor struct {
 	waitGroup       sync.WaitGroup
 	active          bool
@@ -49,10 +54,10 @@ func (self *Processor) processError() {
 	self.errorFinishFlag <- true
 }
 
-func (self *Processor) startProcess() bool {
+func (self *Processor) startProcess(p processer) bool {
 	if !self.active {
-		go self.processData()
-		go self.processError()
+		go p.processData()
+		go p.processError()
 		self.active = true
 		return true
 	}
