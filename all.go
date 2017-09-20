@@ -15,7 +15,7 @@ func (self *All) Add(f WorkerFunc) {
 	self.job.Add(f)
 }
 
-func (self *All) AddCallback(f WorkerFunc, callback func()) {
+func (self *All) addCallback(f WorkerFunc, callback func()) {
 	self.startProcess(self)
 	self.job.addCallback(f, callback)
 }
