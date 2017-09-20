@@ -1,25 +1,21 @@
 package jober
 
 type All struct {
-	Processor
+	job
 }
 
 func NewAll() *All {
 	return &All{
-		Processor: *newProcessor(),
+		job: *newJob(),
 	}
 }
 
-func (self *All) Add(workerFunc WorkerFunc) {
+func (self *All) Add(f WorkerFunc) {
 	self.startProcess(self)
-	self.waitGroup.Add(1)
-	go func() {
-		defer self.waitGroup.Done()
-		d, err := workerFunc()
-		if err != nil {
-			self.errorChan <- err
-			return
-		}
-		self.dataChan <- d
-	}()
+	self.job.Add(f)
+}
+
+func (self *All) AddCallback(f WorkerFunc, callback func()) {
+	self.startProcess(self)
+	self.job.addCallback(f, callback)
 }

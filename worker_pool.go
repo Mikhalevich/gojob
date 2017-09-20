@@ -1,11 +1,16 @@
 package jober
 
+type joberFinishNotifier interface {
+	Jober
+	addCallback(f WorkerFunc, callback func())
+}
+
 type WorkerPool struct {
-	job   Jober
+	job   joberFinishNotifier
 	count chan bool
 }
 
-func NewWorkerPool(j Jober, c int) *WorkerPool {
+func NewWorkerPool(j joberFinishNotifier, c int) *WorkerPool {
 	return &WorkerPool{
 		job:   j,
 		count: make(chan bool, c),
@@ -14,11 +19,12 @@ func NewWorkerPool(j Jober, c int) *WorkerPool {
 
 func (wp *WorkerPool) Add(f WorkerFunc) {
 	wp.count <- true
-	wp.job.Add(f)
+	wp.job.addCallback(f, func() {
+		<-wp.count
+	})
 }
 
 func (wp *WorkerPool) Wait() {
-	close(wp.count)
 	wp.job.Wait()
 }
 

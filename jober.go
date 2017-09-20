@@ -17,7 +17,7 @@ type processer interface {
 	processError()
 }
 
-type Processor struct {
+type job struct {
 	waitGroup       sync.WaitGroup
 	active          bool
 	data            []interface{}
@@ -28,8 +28,8 @@ type Processor struct {
 	errorFinishFlag chan bool
 }
 
-func newProcessor() *Processor {
-	return &Processor{
+func newJob() *job {
+	return &job{
 		active:          false,
 		data:            make([]interface{}, 0),
 		dataChan:        make(chan interface{}),
@@ -40,21 +40,21 @@ func newProcessor() *Processor {
 	}
 }
 
-func (self *Processor) processData() {
+func (self *job) processData() {
 	for d := range self.dataChan {
 		self.data = append(self.data, d)
 	}
 	self.dataFinishFlag <- true
 }
 
-func (self *Processor) processError() {
+func (self *job) processError() {
 	for err := range self.errorChan {
 		self.dataErrors = append(self.dataErrors, err)
 	}
 	self.errorFinishFlag <- true
 }
 
-func (self *Processor) startProcess(p processer) bool {
+func (self *job) startProcess(p processer) bool {
 	if !self.active {
 		go p.processData()
 		go p.processError()
@@ -64,7 +64,7 @@ func (self *Processor) startProcess(p processer) bool {
 	return false
 }
 
-func (self *Processor) Wait() {
+func (self *job) Wait() {
 	self.waitGroup.Wait()
 	close(self.dataChan)
 	close(self.errorChan)
@@ -72,6 +72,33 @@ func (self *Processor) Wait() {
 	<-self.errorFinishFlag
 }
 
-func (self *Processor) Get() ([]interface{}, []error) {
+func (self *job) Get() ([]interface{}, []error) {
 	return self.data, self.dataErrors
+}
+
+func (self *job) Add(f WorkerFunc) {
+	self.waitGroup.Add(1)
+	go func() {
+		defer self.waitGroup.Done()
+		d, err := f()
+		if err != nil {
+			self.errorChan <- err
+			return
+		}
+		self.dataChan <- d
+	}()
+}
+
+func (self *job) addCallback(f WorkerFunc, callback func()) {
+	self.waitGroup.Add(1)
+	go func() {
+		defer callback()
+		defer self.waitGroup.Done()
+		d, err := f()
+		if err != nil {
+			self.errorChan <- err
+			return
+		}
+		self.dataChan <- d
+	}()
 }

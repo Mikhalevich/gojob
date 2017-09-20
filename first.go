@@ -1,12 +1,12 @@
 package jober
 
 type First struct {
-	Processor
+	job
 }
 
 func NewFirst() *First {
 	return &First{
-		Processor: *newProcessor(),
+		job: *newJob(),
 	}
 }
 
@@ -25,21 +25,18 @@ func (self *First) processFunc() {
 	<-self.errorFinishFlag
 }
 
-func (self *First) Add(workerFunc WorkerFunc) {
+func (self *First) Add(f WorkerFunc) {
 	if self.startProcess(self) {
 		go self.processFunc()
 	}
+	self.job.Add(f)
+}
 
-	self.waitGroup.Add(1)
-	go func() {
-		defer self.waitGroup.Done()
-		d, err := workerFunc()
-		if err != nil {
-			self.errorChan <- err
-			return
-		}
-		self.dataChan <- d
-	}()
+func (self *First) addCallback(f WorkerFunc, callback func()) {
+	if self.startProcess(self) {
+		go self.processFunc()
+	}
+	self.job.addCallback(f, callback)
 }
 
 func (self *First) Wait() {
