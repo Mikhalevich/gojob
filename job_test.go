@@ -118,3 +118,76 @@ func TestFirstEnd(t *testing.T) {
 		t.Fatalf("Compared values are not the same %d -> %d", 50, results[0].(int))
 	}
 }
+
+func TestFirstErrorStart(t *testing.T) {
+	job := NewFirstError()
+	for i := 0; i < 100; i++ {
+		locValue := i
+		f := func() (interface{}, error) {
+			if locValue == 0 {
+				return 0, errors.New("First invalid value")
+			}
+			time.Sleep(1000 * time.Millisecond)
+			return 50, nil
+		}
+		job.Add(f)
+	}
+
+	job.Wait()
+
+	results, errors := job.Get()
+
+	t.Logf("results len = %d, errors len = %d", len(results), len(errors))
+
+	if len(errors) != 1 {
+		t.Fatalf("Not valid data length len = %d", len(errors))
+	}
+}
+
+func TestFirstErrorMiddle(t *testing.T) {
+	job := NewFirstError()
+	for i := 0; i < 100; i++ {
+		locValue := i
+		f := func() (interface{}, error) {
+			if locValue == 50 {
+				return 0, errors.New("First invalid value")
+			}
+			return 50, nil
+		}
+		job.Add(f)
+	}
+
+	job.Wait()
+
+	results, errors := job.Get()
+
+	t.Logf("results len = %d, errors len = %d", len(results), len(errors))
+
+	if len(errors) != 1 {
+		t.Fatalf("Not valid data length len = %d", len(errors))
+	}
+}
+
+func TestFirstErrorEnd(t *testing.T) {
+	job := NewFirstError()
+	for i := 0; i < 100; i++ {
+		locValue := i
+		f := func() (interface{}, error) {
+			if locValue == 99 {
+				return 0, errors.New("First invalid value")
+			}
+			return 50, nil
+		}
+		job.Add(f)
+	}
+
+	job.Wait()
+
+	results, errors := job.Get()
+
+	t.Logf("results len = %d, errors len = %d", len(results), len(errors))
+
+	if len(errors) != 1 {
+		t.Fatalf("Not valid data length len = %d", len(errors))
+	}
+}
