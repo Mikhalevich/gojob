@@ -14,6 +14,7 @@ func (self *First) processData() {
 	d, ok := <-self.dataChan
 	if ok {
 		self.data = append(self.data, d)
+		self.cancel()
 	}
 	self.dataFinishFlag <- true
 }

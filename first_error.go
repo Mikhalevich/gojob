@@ -14,6 +14,7 @@ func (self *FirstError) processError() {
 	err, ok := <-self.errorChan
 	if ok {
 		self.dataErrors = append(self.dataErrors, err)
+		self.cancel()
 	}
 	self.errorFinishFlag <- true
 }

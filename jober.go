@@ -26,6 +26,7 @@ type job struct {
 	dataErrors      []error
 	errorChan       chan error
 	errorFinishFlag chan bool
+	cancelationChan chan bool
 }
 
 func newJob() *job {
@@ -37,7 +38,12 @@ func newJob() *job {
 		dataErrors:      make([]error, 0),
 		errorChan:       make(chan error),
 		errorFinishFlag: make(chan bool),
+		cancelationChan: make(chan bool),
 	}
+}
+
+func (j *job) cancel() {
+	close(j.cancelationChan)
 }
 
 func (self *job) processData() {
@@ -82,10 +88,16 @@ func (self *job) Add(f WorkerFunc) {
 		defer self.waitGroup.Done()
 		d, err := f()
 		if err != nil {
-			self.errorChan <- err
+			select {
+			case self.errorChan <- err:
+			case <-self.cancelationChan:
+			}
 			return
 		}
-		self.dataChan <- d
+		select {
+		case self.dataChan <- d:
+		case <-self.cancelationChan:
+		}
 	}()
 }
 
