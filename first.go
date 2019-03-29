@@ -10,36 +10,36 @@ func NewFirst() *First {
 	}
 }
 
-func (self *First) processData() {
-	d, ok := <-self.dataChan
+func (f *First) processData() {
+	d, ok := <-f.dataChan
 	if ok {
-		self.data = append(self.data, d)
-		self.cancel()
+		f.data = append(f.data, d)
+		f.cancel()
 	}
-	self.dataFinishFlag <- true
+	f.dataFinishFlag <- true
 }
 
-func (self *First) processFunc() {
-	self.waitGroup.Wait()
-	close(self.dataChan)
-	close(self.errorChan)
-	<-self.errorFinishFlag
+func (f *First) processFunc() {
+	f.waitGroup.Wait()
+	close(f.dataChan)
+	close(f.errorChan)
+	<-f.errorFinishFlag
 }
 
-func (self *First) Add(f WorkerFunc) {
-	if self.startProcess(self) {
-		go self.processFunc()
+func (f *First) Add(fn WorkerFunc) {
+	if f.startProcess(f) {
+		go f.processFunc()
 	}
-	self.job.Add(f)
+	f.job.Add(fn)
 }
 
-func (self *First) addCallback(f WorkerFunc, callback func()) {
-	if self.startProcess(self) {
-		go self.processFunc()
+func (f *First) addCallback(fn WorkerFunc, callback func()) {
+	if f.startProcess(f) {
+		go f.processFunc()
 	}
-	self.job.addCallback(f, callback)
+	f.job.addCallback(fn, callback)
 }
 
-func (self *First) Wait() {
-	<-self.dataFinishFlag
+func (f *First) Wait() {
+	<-f.dataFinishFlag
 }

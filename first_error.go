@@ -10,36 +10,36 @@ func NewFirstError() *FirstError {
 	}
 }
 
-func (self *FirstError) processError() {
-	err, ok := <-self.errorChan
+func (fr *FirstError) processError() {
+	err, ok := <-fr.errorChan
 	if ok {
-		self.dataErrors = append(self.dataErrors, err)
-		self.cancel()
+		fr.dataErrors = append(fr.dataErrors, err)
+		fr.cancel()
 	}
-	self.errorFinishFlag <- true
+	fr.errorFinishFlag <- true
 }
 
-func (self *FirstError) processFunc() {
-	self.waitGroup.Wait()
-	close(self.dataChan)
-	close(self.errorChan)
-	<-self.dataFinishFlag
+func (fr *FirstError) processFunc() {
+	fr.waitGroup.Wait()
+	close(fr.dataChan)
+	close(fr.errorChan)
+	<-fr.dataFinishFlag
 }
 
-func (self *FirstError) Add(f WorkerFunc) {
-	if self.startProcess(self) {
-		go self.processFunc()
+func (fr *FirstError) Add(f WorkerFunc) {
+	if fr.startProcess(fr) {
+		go fr.processFunc()
 	}
-	self.job.Add(f)
+	fr.job.Add(f)
 }
 
-func (self *FirstError) addCallback(f WorkerFunc, callback func()) {
-	if self.startProcess(self) {
-		go self.processFunc()
+func (fr *FirstError) addCallback(f WorkerFunc, callback func()) {
+	if fr.startProcess(fr) {
+		go fr.processFunc()
 	}
-	self.job.addCallback(f, callback)
+	fr.job.addCallback(f, callback)
 }
 
-func (self *FirstError) Wait() {
-	<-self.errorFinishFlag
+func (fr *FirstError) Wait() {
+	<-fr.errorFinishFlag
 }

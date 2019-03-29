@@ -46,77 +46,77 @@ func (j *job) cancel() {
 	close(j.cancelationChan)
 }
 
-func (self *job) processData() {
-	for d := range self.dataChan {
-		self.data = append(self.data, d)
+func (j *job) processData() {
+	for d := range j.dataChan {
+		j.data = append(j.data, d)
 	}
-	self.dataFinishFlag <- true
+	j.dataFinishFlag <- true
 }
 
-func (self *job) processError() {
-	for err := range self.errorChan {
-		self.dataErrors = append(self.dataErrors, err)
+func (j *job) processError() {
+	for err := range j.errorChan {
+		j.dataErrors = append(j.dataErrors, err)
 	}
-	self.errorFinishFlag <- true
+	j.errorFinishFlag <- true
 }
 
-func (self *job) startProcess(p processer) bool {
-	if !self.active {
+func (j *job) startProcess(p processer) bool {
+	if !j.active {
 		go p.processData()
 		go p.processError()
-		self.active = true
+		j.active = true
 		return true
 	}
 	return false
 }
 
-func (self *job) Wait() {
-	self.waitGroup.Wait()
-	close(self.dataChan)
-	close(self.errorChan)
-	<-self.dataFinishFlag
-	<-self.errorFinishFlag
+func (j *job) Wait() {
+	j.waitGroup.Wait()
+	close(j.dataChan)
+	close(j.errorChan)
+	<-j.dataFinishFlag
+	<-j.errorFinishFlag
 }
 
-func (self *job) Get() ([]interface{}, []error) {
-	return self.data, self.dataErrors
+func (j *job) Get() ([]interface{}, []error) {
+	return j.data, j.dataErrors
 }
 
-func (self *job) Add(f WorkerFunc) {
-	self.waitGroup.Add(1)
+func (j *job) Add(f WorkerFunc) {
+	j.waitGroup.Add(1)
 	go func() {
-		defer self.waitGroup.Done()
+		defer j.waitGroup.Done()
 		d, err := f()
 		if err != nil {
 			select {
-			case self.errorChan <- err:
-			case <-self.cancelationChan:
+			case j.errorChan <- err:
+			case <-j.cancelationChan:
 			}
 			return
 		}
 		select {
-		case self.dataChan <- d:
-		case <-self.cancelationChan:
+		case j.dataChan <- d:
+		case <-j.cancelationChan:
 		}
 	}()
 }
 
-func (self *job) addCallback(f WorkerFunc, callback func()) {
-	self.waitGroup.Add(1)
+func (j *job) addCallback(f WorkerFunc, callback func()) {
+	j.waitGroup.Add(1)
 	go func() {
 		defer callback()
-		defer self.waitGroup.Done()
+		defer j.waitGroup.Done()
 		d, err := f()
 		if err != nil {
 			select {
-			case self.errorChan <- err:
-			case <-self.cancelationChan:
+			case j.errorChan <- err:
+			case <-j.cancelationChan:
 			}
 			return
 		}
 		select {
-		case self.dataChan <- d:
-		case <-self.cancelationChan:
+		case j.dataChan <- d:
+		case <-j.cancelationChan:
 		}
 	}()
 }
