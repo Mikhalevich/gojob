@@ -108,9 +108,15 @@ func (self *job) addCallback(f WorkerFunc, callback func()) {
 		defer self.waitGroup.Done()
 		d, err := f()
 		if err != nil {
-			self.errorChan <- err
+			select {
+			case self.errorChan <- err:
+			case <-self.cancelationChan:
+			}
 			return
 		}
-		self.dataChan <- d
+		select {
+		case self.dataChan <- d:
+		case <-self.cancelationChan:
+		}
 	}()
 }
