@@ -19,7 +19,7 @@ type processer interface {
 
 type job struct {
 	waitGroup       sync.WaitGroup
-	active          bool
+	once            sync.Once
 	data            []interface{}
 	dataChan        chan interface{}
 	dataFinishFlag  chan bool
@@ -31,7 +31,6 @@ type job struct {
 
 func newJob() *job {
 	return &job{
-		active:          false,
 		data:            make([]interface{}, 0),
 		dataChan:        make(chan interface{}),
 		dataFinishFlag:  make(chan bool),
@@ -60,14 +59,11 @@ func (j *job) processError() {
 	j.errorFinishFlag <- true
 }
 
-func (j *job) startProcess(p processer) bool {
-	if !j.active {
+func (j *job) startProcess(p processer) {
+	j.once.Do(func() {
 		go p.processData()
 		go p.processError()
-		j.active = true
-		return true
-	}
-	return false
+	})
 }
 
 func (j *job) Wait() {

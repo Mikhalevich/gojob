@@ -1,7 +1,10 @@
 package jober
 
+import "sync"
+
 type FirstError struct {
 	job
+	once sync.Once
 }
 
 func NewFirstError() *FirstError {
@@ -26,17 +29,20 @@ func (fr *FirstError) processFunc() {
 	<-fr.dataFinishFlag
 }
 
-func (fr *FirstError) Add(f WorkerFunc) {
-	if fr.startProcess(fr) {
+func (fr *FirstError) startProcess(p processer) {
+	fr.once.Do(func() {
+		fr.job.startProcess(fr)
 		go fr.processFunc()
-	}
+	})
+}
+
+func (fr *FirstError) Add(f WorkerFunc) {
+	fr.startProcess(fr)
 	fr.job.Add(f)
 }
 
 func (fr *FirstError) addCallback(f WorkerFunc, callback func()) {
-	if fr.startProcess(fr) {
-		go fr.processFunc()
-	}
+	fr.startProcess(fr)
 	fr.job.addCallback(f, callback)
 }
 

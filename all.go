@@ -10,12 +10,12 @@ func NewAll() *All {
 	}
 }
 
-func (self *All) Add(f WorkerFunc) {
-	self.startProcess(self)
-	self.job.Add(f)
+func (a *All) Add(f WorkerFunc) {
+	a.startProcess(a)
+	a.job.Add(f)
 }
 
-func (self *All) addCallback(f WorkerFunc, callback func()) {
-	self.startProcess(self)
-	self.job.addCallback(f, callback)
+func (a *All) addCallback(f WorkerFunc, callback func()) {
+	a.startProcess(a)
+	a.job.addCallback(f, callback)
 }
