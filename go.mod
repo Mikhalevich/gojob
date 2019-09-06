@@ -1,3 +1,3 @@
-module github.com/Mikhalevich/argparser
+module github.com/Mikhalevich/jober
 
 go 1.13
